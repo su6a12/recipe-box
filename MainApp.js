@@ -56,7 +56,7 @@ const MainApp = React.createClass({
 
 const AddRecipeModal = React.createClass({
   closeAddModal (e) {
-    e.preventDefault()
+    e.stopPropagation()
     this.props.onClose()
   },
   addRecipe () {
@@ -123,8 +123,8 @@ const Recipe = React.createClass({
     // I rerender the entire page including list of recipes
     ReactDOM.render(<MainApp />, document.getElementById('mainApp'));
   },
-  handleEditRecipe () {
-    return
+  handleEditRecipe (list) {
+    recipes[this.props.index]['ingredients'] = list
   },
   handleSlider () {
     this.setState({isIngredientsShowing: !this.state.isIngredientsShowing})
@@ -143,7 +143,8 @@ const Recipe = React.createClass({
           <ChangeRecipeModal 
             isChangeModalOpen={this.state.isChangeModalOpen}
             onCloseModal={() => this.closeChangeModal()}
-            onEdit={() => this.handleEditRecipe()}/>
+            onEditModal={() => this.handleEditRecipe()}
+            recipe={this.props.recipe}/>
         </li>
       </div>
     )
@@ -155,7 +156,8 @@ const IngredientsList = React.createClass({
     e.stopPropagation()
     this.props.onEditClick()
   },
-  deleteRecipeClick () {
+  deleteRecipeClick (e) {
+    e.stopPropagation()
     this.props.onDeleteClick()
   },
   render () {
@@ -173,24 +175,37 @@ const IngredientsList = React.createClass({
       <div>
         {ingredientsList}
         <button onClick={e => this.openEditModalClick(e)}>Edit</button>
-        <button onClick={() => this.deleteRecipeClick()}>Delete</button>
+        <button onClick={e => this.deleteRecipeClick(e)}>Delete</button>
       </div>
     )
   }
 })
 
 const ChangeRecipeModal = React.createClass({
+  editRecipe (e) {
+    e.stopPropagation(e)
+    this.props.onEditModal(document.getElementById('recipe-ingredients').value)
+  },
   closeModal (e) {
-    e.preventDefault()
     e.stopPropagation()
-    this.props.onCloseModal()
+    this.props.onCloseModal(e)
   },
   render () {
     if (this.props.isChangeModalOpen === false) {
       return null
     }
+    let ingredientsList = this.props.recipe.ingredients.toString()
     return (
       <div>
+        <div className='modal-style'>
+          <div className='modal-title'>Edit Recipe</div>
+          <label for='recipe-title'>Recipe</label>
+          <input id='recipe-title' type='text' value={this.props.recipe.title} />
+          <label for='recipe-ingredients'>Ingredients</label>
+          <textarea id='recipe-ingredients' type='textarea' rows='10' cols='50'>{ingredientsList}</textarea>
+          <button onClick={e => this.editRecipe(e)}>Edit</button>
+          <button onClick={e => this.closeModal(e)}>Close</button>
+        </div>
         <div className='modal-background' onClick={e => this.closeModal(e)}></div>
       </div>
     )
