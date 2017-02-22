@@ -30,14 +30,40 @@
 }
 
 label,
-input {
+input,
+textarea {
     display: block;
     text-align: left;
     margin: 5px 0;
 }
 
+label {
+    font-size: 1.1em;
+}
+
+input,
+textarea {
+    width: 90%;
+    font-size: 1em;
+}
+
 button {
-    display: block;
+    border: 0;
+    outline: none;
+    box-shadow: 2px 5px 1px #1757c9;
+    background-color: cornflowerblue;
+    color: #fff;
+    cursor: pointer;
+    padding: 12px 20px;
+    transition: all .03s linear;
+    border-radius: 5px;
+    margin: 5px;
+    font-size: 1.2em;
+}
+
+button:active {
+    box-shadow: 2px 2px 1px #1757c9;
+    transform: translateY(3px);
 }
     
 #main-add {
@@ -46,7 +72,7 @@ button {
 
 ul {
     border: 1px solid black;
-    width: 80%;
+    width: 60%;
     margin: 0 auto;
     padding: 0;
 }

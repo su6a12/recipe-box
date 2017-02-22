@@ -2,8 +2,6 @@
 // switching to 5.x.x fixed the issue
 var recipes = localStorage['su6a12_recipes'] ? JSON.parse(localStorage['su6a12_recipes']) : []
 
-console.log(recipes)
-
 const MainApp = React.createClass({
   // set initial flag for modal to false
   getInitialState () {
@@ -46,9 +44,9 @@ const MainApp = React.createClass({
     return (
       <div>
         <RecipeList/>
-        <button id='main-add' onClick={() => this.openModal()} value='Add'>Add Recipe</button>
+        <button onClick={() => this.openModal()}>Add Recipe</button>
         <AddRecipeModal 
-          isOpen={this.state.isModalOpen}
+          isAddModalOpen={this.state.isModalOpen}
           onClose={() => this.closeModal()} 
           onAdd={() => this.handleAddRecipe()} />
       </div>
@@ -57,7 +55,7 @@ const MainApp = React.createClass({
 })
 
 const AddRecipeModal = React.createClass({
-  closeModal (e) {
+  closeAddModal (e) {
     e.preventDefault()
     this.props.onClose()
   },
@@ -65,7 +63,7 @@ const AddRecipeModal = React.createClass({
     this.props.onAdd()
   },
   render () {
-    if (this.props.isOpen === false) {
+    if (this.props.isAddModalOpen === false) {
       return null
     }
     return (
@@ -73,13 +71,13 @@ const AddRecipeModal = React.createClass({
         <div className='modal-style'>
           <div className='modal-title'>Add a Recipe</div>
             <label for='recipe-title'>Recipe</label>
-            <input id='recipe-title' type='text' placeholder='Recipe Name' size='50' />
+            <input id='recipe-title' type='text' placeholder='Recipe Name' />
             <label for='recipe-ingredients'>Ingredients</label>
             <textarea id='recipe-ingredients' type='textarea' placeholder='Separate, By, Commas' rows='10' cols='50'/>
-            <button onClick={() => this.addRecipe()}>Add Recipe</button>
-            <button onClick={e => this.closeModal(e)}>Close</button>
+            <button onClick={() => this.addRecipe()}>Add</button>
+            <button onClick={e => this.closeAddModal(e)}>Close</button>
         </div>
-        <div className='modal-background' onClick={e => this.closeModal(e)}></div>
+        <div className='modal-background' onClick={e => this.closeAddModal(e)}></div>
       </div>
     )
   }
@@ -91,6 +89,7 @@ const RecipeList = React.createClass({
       return (
         <Recipe 
           recipe={recipe}
+          index={index}
           key={index} />
       )
     })
@@ -105,42 +104,96 @@ const RecipeList = React.createClass({
 const Recipe = React.createClass({
   getInitialState () {
     return {
+      isIngredientsShowing: false,
       isChangeModalOpen: false
     }
-  },
-  openChangeModal () {
-    this.setState({isChangeModalOpen: true})
   },
   closeChangeModal () {
     this.setState({isChangeModalOpen: false})
   },
-  handleChangeModal () {
+  openEditModal () {
+    this.setState({isChangeModalOpen: true})
+
+  },
+  deleteRecipe () {
+    recipes.splice(this.props.index, 1);
+    localStorage.setItem('su6a12_recipes', JSON.stringify(recipes))
+
+    // instead of passing state back to recipe list
+    // I rerender the entire page including list of recipes
+    ReactDOM.render(<MainApp />, document.getElementById('mainApp'));
+  },
+  handleEditRecipe () {
     return
   },
+  handleSlider () {
+    this.setState({isIngredientsShowing: !this.state.isIngredientsShowing})
+  },
   render () {
-    let ingredientsList = this.props.recipe.ingredients.map((ingredient) => {
+    return (
+      <div>
+        <li onClick={() => this.handleSlider()}>
+          <div className='title'>{this.props.recipe.title}</div>
+          <IngredientsList 
+            isOpen={this.state.isIngredientsShowing}
+            recipe={this.props.recipe}
+            index={this.props.index}
+            onEditClick={() => this.openEditModal()}
+            onDeleteClick={() => this.deleteRecipe()}/>
+          <ChangeRecipeModal 
+            isChangeModalOpen={this.state.isChangeModalOpen}
+            onCloseModal={() => this.closeChangeModal()}
+            onEdit={() => this.handleEditRecipe()}/>
+        </li>
+      </div>
+    )
+  }
+})
+
+const IngredientsList = React.createClass({
+  openEditModalClick (e) {
+    e.stopPropagation()
+    this.props.onEditClick()
+  },
+  deleteRecipeClick () {
+    this.props.onDeleteClick()
+  },
+  render () {
+    if (this.props.isOpen === false) {
+      return null
+    }
+    let ingredientsList = this.props.recipe.ingredients.map((ingredient, index) => {
       return (
-        <div className='ingredient'>{ingredient}</div>
+        <div 
+          className='ingredient'
+          key={index}>{ingredient}</div>
       )
     })
     return (
       <div>
-        <li onClick={() => this.handleChangeModal()}>
-          {this.props.recipe.title}
-          {ingredientsList}
-        </li>
-        <ChangeRecipeModal 
-          isOpen={this.state.isChangeModalOpen}
-          onClose={() => this.closeChangeModal()}
-          onOpen={() => this.openChangeModal()} />
+        {ingredientsList}
+        <button onClick={e => this.openEditModalClick(e)}>Edit</button>
+        <button onClick={() => this.deleteRecipeClick()}>Delete</button>
       </div>
     )
   }
 })
 
 const ChangeRecipeModal = React.createClass({
+  closeModal (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    this.props.onCloseModal()
+  },
   render () {
-    return <div></div>
+    if (this.props.isChangeModalOpen === false) {
+      return null
+    }
+    return (
+      <div>
+        <div className='modal-background' onClick={e => this.closeModal(e)}></div>
+      </div>
+    )
   }
 })
 
